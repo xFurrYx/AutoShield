@@ -1,0 +1,79 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Build:  dotnet build -c Release
+    Paths:  set ValheimRefs / BepInExCore below, pass them with -p:, or put them in a
+            git-ignored ../Environment.props (see Environment.props.example).
+
+    ValheimRefs must contain the *publicized* game assemblies
+    (assembly_valheim_publicized.dll, assembly_utils_publicized.dll) and a Managed/
+    folder with Valheim's Unity DLLs.
+  -->
+  <Import Project="..\Environment.props" Condition="Exists('..\Environment.props')" />
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>AutoShield</AssemblyName>
+    <RootNamespace>AutoShield</RootNamespace>
+    <Version>3.0.0</Version>
+    <Product>AutoShield</Product>
+    <Description>Auto-equips a marked shield with one-handed weapons in Valheim.</Description>
+    <Copyright>Copyright (c) 2023 Pete Navarra (Vapok); 2026 2b</Copyright>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <DebugType>portable</DebugType>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+
+    <ReferencesRoot Condition="'$(ReferencesRoot)' == ''">$(HOME)/Modding/References</ReferencesRoot>
+    <ValheimRefs Condition="'$(ValheimRefs)' == ''">$(ReferencesRoot)/Valheim/1.0.20</ValheimRefs>
+    <ValheimManaged Condition="'$(ValheimManaged)' == ''">$(ValheimRefs)/Managed</ValheimManaged>
+    <BepInExCore Condition="'$(BepInExCore)' == ''">$(ReferencesRoot)/BepInEx/5.4.2350/BepInEx/core</BepInExCore>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Lets `dotnet build` target .NET Framework 4.8 on Linux/macOS. Build-time only. -->
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="BepInEx" HintPath="$(BepInExCore)/BepInEx.dll" Private="false" />
+    <Reference Include="0Harmony" HintPath="$(BepInExCore)/0Harmony.dll" Private="false" />
+
+    <Reference Include="assembly_valheim" HintPath="$(ValheimRefs)/assembly_valheim_publicized.dll" Private="false" />
+    <Reference Include="assembly_utils" HintPath="$(ValheimRefs)/assembly_utils_publicized.dll" Private="false" />
+    <Reference Include="assembly_guiutils" HintPath="$(ValheimRefs)/assembly_guiutils_publicized.dll" Private="false" />
+
+    <Reference Include="UnityEngine" HintPath="$(ValheimManaged)/UnityEngine.dll" Private="false" />
+    <Reference Include="UnityEngine.CoreModule" HintPath="$(ValheimManaged)/UnityEngine.CoreModule.dll" Private="false" />
+    <Reference Include="UnityEngine.ImageConversionModule" HintPath="$(ValheimManaged)/UnityEngine.ImageConversionModule.dll" Private="false" />
+    <Reference Include="UnityEngine.UIModule" HintPath="$(ValheimManaged)/UnityEngine.UIModule.dll" Private="false" />
+    <Reference Include="UnityEngine.UI" HintPath="$(ValheimManaged)/UnityEngine.UI.dll" Private="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\shield.png" LogicalName="AutoShield.Resources.shield.png" />
+    <EmbeddedResource Include="Resources\excluded.png" LogicalName="AutoShield.Resources.excluded.png" />
+  </ItemGroup>
+
+  <!-- Optional: copy the DLL into a mod-manager profile after every build. -->
+  <Target Name="CopyToProfile" AfterTargets="Build" Condition="'$(ProfilePlugins)' != '' And Exists('$(ProfilePlugins)')">
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ProfilePlugins)/AutoShield" SkipUnchangedFiles="true" />
+  </Target>
+
+  <!-- Release only: assemble an upload-ready zip (Hexium layout) in ../dist. -->
+  <Target Name="PackageRelease" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
+    <PropertyGroup>
+      <PackageStage>$(MSBuildProjectDirectory)/../dist/stage</PackageStage>
+      <PackageZip>$(MSBuildProjectDirectory)/../dist/AutoShield-$(Version).zip</PackageZip>
+    </PropertyGroup>
+    <RemoveDir Directories="$(PackageStage)" />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(PackageStage)/plugins" />
+    <Copy SourceFiles="../manifest.json;../icon.png;../README.md;../CHANGELOG.md;../LICENSE.md" DestinationFolder="$(PackageStage)" />
+    <Delete Files="$(PackageZip)" />
+    <ZipDirectory SourceDirectory="$(PackageStage)" DestinationFile="$(PackageZip)" />
+    <Message Importance="high" Text="Release package: $(PackageZip)" />
+  </Target>
+
+</Project>

@@ -1,0 +1,11 @@
+bin/
+obj/
+dist/
+.vs/
+.idea/
+*.user
+*.suo
+Environment.props
+# Never commit game or BepInEx binaries (not ours to redistribute)
+*.dll
+*.pdb

@@ -1,0 +1,7 @@
+{
+  "name": "AutoShield",
+  "version_number": "3.0.0",
+  "website_url": "https://github.com/xFurrYx/AutoShield",
+  "description": "Middle-click a shield to mark it; it auto-equips with any one-handed weapon. Client-only, no telemetry, no popups.",
+  "dependencies": []
+}

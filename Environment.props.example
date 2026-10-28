@@ -1,0 +1,10 @@
+<!-- Copy to Environment.props (git-ignored) and adjust to your machine. -->
+<Project>
+  <PropertyGroup>
+    <ReferencesRoot>$(HOME)/Modding/References</ReferencesRoot>
+    <ValheimRefs>$(ReferencesRoot)/Valheim/1.0.20</ValheimRefs>
+    <BepInExCore>$(ReferencesRoot)/BepInEx/5.4.2350/BepInEx/core</BepInExCore>
+    <!-- Optional: auto-copy builds into a Gale / r2modman profile -->
+    <ProfilePlugins>$(HOME)/Modding/Gale Profiles/Default/BepInEx/plugins</ProfilePlugins>
+  </PropertyGroup>
+</Project>
