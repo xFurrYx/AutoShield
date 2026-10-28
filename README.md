@@ -59,6 +59,8 @@ dotnet build -c Release
 
 ## Credits and license
 
+**Vibecoded.** The code was written with Claude, an LLM by Anthropic, and directed and checked by 2b. It's small and open, so read it on [GitHub](https://github.com/xFurrYx/AutoShield) before you trust it, and please report anything odd there.
+
 Shield and exclusion badges based on ["Shield" from SVG Repo](https://www.svgrepo.com/svg/119525/shield) (CC0).
 
 MIT. This is a fork of [ShieldMeBruh](https://github.com/Vapok/ShieldMeBruh) by Vapok. The gameplay idea and the original implementation are his. This fork keeps only the shield behaviour and rewrites the rest.
