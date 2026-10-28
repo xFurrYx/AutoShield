@@ -35,7 +35,9 @@ The marks are stored on the items, so they follow the shield or weapon through i
 
 ## Installation
 
-Install with a mod manager, or copy `plugins/AutoShield.dll` into `Valheim/BepInEx/plugins/`. The only requirement is BepInExPack_Valheim.
+Install with Gale or another Thunderstore-compatible mod manager. BepInExPack Valheim is the only requirement.
+
+Manual install: install [BepInExPack Valheim](https://thunderstore.io/c/valheim/p/denikson/BepInExPack_Valheim/), then put `AutoShield.dll` in `BepInEx/plugins/`.
 
 **Client only.** Dedicated servers don't need it. If it's installed on one anyway, it detects the headless server and does nothing. Other players don't need it either.
 
@@ -48,18 +50,17 @@ Install with a mod manager, or copy `plugins/AutoShield.dll` into `Valheim/BepIn
 
 ## Building
 
-Requirements: .NET SDK 6 or newer, and publicized Valheim assemblies.
+Requirements: .NET SDK 6 or newer, Python 3, Valheim, and a mod-manager profile with BepInEx.
 
 ```sh
-cp Environment.props.example Environment.props   # edit the paths
-dotnet build -c Release
+./package.py --profile "<Gale profile folder>"
 ```
 
-`Release` also writes an upload-ready `dist/AutoShield-<version>.zip` (Hexium layout: `manifest.json`, `icon.png` and `README.md` at the zip root, the DLL in `plugins/`).
+Gale shows the profile folder under Settings > Browse Profile Folder. Add `--valheim "<Valheim install>"` if Valheim isn't in Steam's default Linux location. The script checks the manifest, version numbers and icon, builds, and writes `dist/AutoShield-<version>.zip`. Import that zip into Gale to test it, or upload it to Hexium.
 
 ## Credits and license
 
-**Vibecoded.** The code was written with Claude, an LLM by Anthropic, and directed and checked by me. It's small and open, so read it on [GitHub](https://github.com/xFurrYx/AutoShield) before you trust it, and please report anything odd there.
+**Vibecoded.** The code was written with Claude, an LLM by Anthropic, and directed and checked by 2b. It's small and open, so read it on [GitHub](https://github.com/xFurrYx/AutoShield) before you trust it, and please report anything odd there.
 
 Shield and exclusion badges based on ["Shield" from SVG Repo](https://www.svgrepo.com/svg/119525/shield) (CC0).
 

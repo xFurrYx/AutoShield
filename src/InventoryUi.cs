@@ -149,9 +149,87 @@ internal static class InventoryUi
             return null;
         }
 
+        BleedIntoTransparent(texture);
+
         texture.filterMode = FilterMode.Bilinear;
         texture.wrapMode = TextureWrapMode.Clamp;
+        // Slightly prefer the sharper mip level; badges are drawn at ~1/4 of their source size.
+        texture.mipMapBias = -0.5f;
         return Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
+    }
+
+    /// <summary>
+    /// Fully transparent pixels still carry a colour (image editors usually store white).
+    /// Texture filtering and mipmaps blend that hidden colour into the visible edge, which
+    /// shows up as a light fringe. Copy the nearest visible colour outwards instead, then
+    /// rebuild the mipmaps. Alpha is left untouched, so the image looks the same.
+    /// </summary>
+    private static void BleedIntoTransparent(Texture2D texture)
+    {
+        const byte Visible = 8;
+        int w = texture.width, h = texture.height;
+        Color32[] px = texture.GetPixels32();
+        bool[] known = new bool[px.Length];
+        long sr = 0, sg = 0, sb = 0, count = 0;
+
+        for (int i = 0; i < px.Length; i++)
+        {
+            if (px[i].a <= Visible)
+                continue;
+            known[i] = true;
+            sr += px[i].r; sg += px[i].g; sb += px[i].b; count++;
+        }
+
+        if (count == 0 || count == px.Length)
+            return;
+
+        // Grow the visible colours outwards a ring at a time.
+        var next = new List<int>();
+        for (int pass = 0; pass < 32; pass++)
+        {
+            next.Clear();
+            for (int y = 0; y < h; y++)
+            for (int x = 0; x < w; x++)
+            {
+                int i = y * w + x;
+                if (known[i])
+                    continue;
+
+                int r = 0, g = 0, b = 0, n = 0;
+                for (int dy = -1; dy <= 1; dy++)
+                for (int dx = -1; dx <= 1; dx++)
+                {
+                    int nx = x + dx, ny = y + dy;
+                    if ((dx == 0 && dy == 0) || nx < 0 || ny < 0 || nx >= w || ny >= h)
+                        continue;
+                    int j = ny * w + nx;
+                    if (!known[j])
+                        continue;
+                    r += px[j].r; g += px[j].g; b += px[j].b; n++;
+                }
+
+                if (n == 0)
+                    continue;
+                px[i] = new Color32((byte)(r / n), (byte)(g / n), (byte)(b / n), px[i].a);
+                next.Add(i);
+            }
+
+            if (next.Count == 0)
+                break;
+            foreach (int i in next)
+                known[i] = true;
+        }
+
+        // Anything still untouched (far from all visible pixels) gets the average colour.
+        var average = new Color32((byte)(sr / count), (byte)(sg / count), (byte)(sb / count), 0);
+        for (int i = 0; i < px.Length; i++)
+        {
+            if (!known[i])
+                px[i] = new Color32(average.r, average.g, average.b, px[i].a);
+        }
+
+        texture.SetPixels32(px);
+        texture.Apply(updateMipmaps: true);
     }
 }
 

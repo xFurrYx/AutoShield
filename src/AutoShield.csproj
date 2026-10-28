@@ -1,0 +1,80 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>AutoShield</AssemblyName>
+    <RootNamespace>AutoShield</RootNamespace>
+    <Version>3.0.0</Version>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <!-- Required by the publicizer on Mono (Valheim's runtime) -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- Default Steam path on Linux; override with -p:ValheimPath=... -->
+    <ValheimPath Condition="'$(ValheimPath)' == ''">$(HOME)/.local/share/Steam/steamapps/common/Valheim</ValheimPath>
+    <!-- Mod manager profile folder (Gale: Settings > Browse Profile Folder); must contain BepInEx/core -->
+    <BepInExProfilePath Condition="'$(BepInExProfilePath)' == ''"></BepInExProfilePath>
+    <!-- The Linux build uses valheim_Data, the Windows build Valheim_Data -->
+    <ValheimManaged Condition="Exists('$(ValheimPath)/valheim_Data/Managed')">$(ValheimPath)/valheim_Data/Managed</ValheimManaged>
+    <ValheimManaged Condition="'$(ValheimManaged)' == ''">$(ValheimPath)/Valheim_Data/Managed</ValheimManaged>
+  </PropertyGroup>
+
+  <!-- Never copy game or BepInEx DLLs into the build output -->
+  <ItemDefinitionGroup>
+    <Reference>
+      <Private>false</Private>
+    </Reference>
+  </ItemDefinitionGroup>
+
+  <ItemGroup>
+    <!-- Build-time only: makes private game members accessible -->
+    <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.3" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="BepInEx">
+      <HintPath>$(BepInExProfilePath)/BepInEx/core/BepInEx.dll</HintPath>
+    </Reference>
+    <Reference Include="0Harmony">
+      <HintPath>$(BepInExProfilePath)/BepInEx/core/0Harmony.dll</HintPath>
+    </Reference>
+    <Reference Include="assembly_valheim" Publicize="true">
+      <HintPath>$(ValheimManaged)/assembly_valheim.dll</HintPath>
+    </Reference>
+    <Reference Include="assembly_guiutils" Publicize="true">
+      <HintPath>$(ValheimManaged)/assembly_guiutils.dll</HintPath>
+    </Reference>
+    <Reference Include="assembly_utils">
+      <HintPath>$(ValheimManaged)/assembly_utils.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>$(ValheimManaged)/UnityEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(ValheimManaged)/UnityEngine.CoreModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.ImageConversionModule">
+      <HintPath>$(ValheimManaged)/UnityEngine.ImageConversionModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UIModule">
+      <HintPath>$(ValheimManaged)/UnityEngine.UIModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>$(ValheimManaged)/UnityEngine.UI.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\shield.png" LogicalName="AutoShield.Resources.shield.png" />
+    <EmbeddedResource Include="Resources\excluded.png" LogicalName="AutoShield.Resources.excluded.png" />
+  </ItemGroup>
+
+  <!-- Fail early with a readable message instead of dozens of "type not found" errors -->
+  <Target Name="CheckPaths" BeforeTargets="ResolveAssemblyReferences">
+    <Error Condition="!Exists('$(ValheimManaged)/assembly_valheim.dll')"
+           Text="Valheim not found at '$(ValheimPath)'. Pass -p:ValheimPath=/path/to/Valheim (or --valheim to package.py)" />
+    <Error Condition="!Exists('$(BepInExProfilePath)/BepInEx/core/BepInEx.dll')"
+           Text="BepInEx not found in profile '$(BepInExProfilePath)'. Pass -p:BepInExProfilePath=... (or --profile to package.py); Gale: Settings > Browse Profile Folder" />
+  </Target>
+
+</Project>
